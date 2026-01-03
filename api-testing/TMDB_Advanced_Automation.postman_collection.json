@@ -1,0 +1,131 @@
+{
+	"info": {
+		"_postman_id": "0ec28026-c5b9-430c-8035-eb8ebc6e4f87",
+		"name": "TMDB API Test - Advanced Chaining",
+		"description": "API Test Collection demonstrating dynamic variable extraction and request chaining.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18170064"
+	},
+	"item": [
+		{
+			"name": "Step 1: Search and Extract ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 1. Standard Validations",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// 2. Data Extraction & Chaining Logic",
+							"pm.test(\"Extract Movie ID for next request\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    ",
+							"    // Ensure results exist",
+							"    pm.expect(jsonData.results.length).to.be.at.least(1);",
+							"    ",
+							"    // Get the ID of the first result (Inception)",
+							"    var movieId = jsonData.results[0].id;",
+							"    ",
+							"    // Save it to a collection variable so other requests can see it",
+							"    pm.collectionVariables.set(\"last_found_movie_id\", movieId);",
+							"    ",
+							"    console.log(\"Saved Movie ID: \" + movieId);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.themoviedb.org/3/search/movie?api_key={{api_key}}&query=Inception",
+					"protocol": "https",
+					"host": [
+						"api",
+						"themoviedb",
+						"org"
+					],
+					"path": [
+						"3",
+						"search",
+						"movie"
+					],
+					"query": [
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						},
+						{
+							"key": "query",
+							"value": "Inception"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 2: Get Details using Extracted ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successfully fetched movie details using dynamic ID\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    ",
+							"    var jsonData = pm.response.json();",
+							"    // Check that the ID we used is the one we got back",
+							"    var expectedId = pm.collectionVariables.get(\"last_found_movie_id\");",
+							"    pm.expect(jsonData.id).to.eql(expectedId);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.themoviedb.org/3/movie/{{last_found_movie_id}}?api_key={{api_key}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"themoviedb",
+						"org"
+					],
+					"path": [
+						"3",
+						"movie",
+						"{{last_found_movie_id}}"
+					],
+					"query": [
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "api_key",
+			"value": "9085464a0f11453c338f998c6c616544",
+			"type": "string"
+		},
+		{
+			"key": "last_found_movie_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
